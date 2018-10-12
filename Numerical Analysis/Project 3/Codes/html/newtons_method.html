@@ -1,0 +1,172 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>newtons_method</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-09-25"><meta name="DC.source" content="newtons_method.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% Ali Heydari</span>
+<span class="comment">% Math 231, hw3</span>
+<span class="comment">% Newton's Method</span>
+
+<span class="comment">% a = input('Please enter a value for the lower bound a: ');</span>
+<span class="comment">% b = input('Please enter a value for the upper bound (b) : ');</span>
+
+x_k = ones(1,6);
+
+<span class="comment">% get initial conditions</span>
+x_k(1) = input(<span class="string">'Please enter the initial guess x_0: '</span>);
+delta = input(<span class="string">'Please enter the desired tolerance: '</span>);
+f = input(<span class="string">'Please enter f(x)?(type @(x) [then the function] '</span>);
+f_prime = input(<span class="string">'Please enter d/dx(f(x)) (derivative)?(type @(x) [then the function] '</span>);
+
+xk = x_k(1);
+fx = f(x_k(1));  <span class="comment">% evaluate function at x_o: f(x_o)</span>
+
+counter = 1;      <span class="comment">% counter</span>
+
+
+<span class="comment">% keep finding the root until f(x_k)~~ 0</span>
+<span class="keyword">while</span> abs(f(x_k(counter))) &gt; 2 * delta
+
+    <span class="comment">% Neton's method formula</span>
+    x_k(counter+1) = x_k(counter) - (f(x_k(counter)) / f_prime(x_k(counter)));
+
+    <span class="comment">% display xk</span>
+    xk = x_k(counter+1);
+    <span class="comment">% Evaluating the function at new x_k</span>
+    fx = f(x_k(counter+1));
+
+    <span class="comment">% find the error</span>
+    error = abs(x_k(count+1) - x_k(count));
+
+    <span class="comment">% no real zero, so we keep this as an arbitrary bound</span>
+    <span class="keyword">if</span> fx &lt;= 1*10^-10
+
+            root = xk;
+     <span class="keyword">end</span>
+    <span class="comment">% Update the counter</span>
+    counter = counter + 1;
+<span class="keyword">end</span>
+
+fprintf(<span class="string">'The root of the function is at x = %i \n'</span>, root);
+fprintf(<span class="string">'Number of iterations: %i \n'</span>, counter);
+</pre><pre class="codeoutput error">Error using input
+Cannot call INPUT from EVALC.
+
+Error in newtons_method (line 11)
+x_k(1) = input('Please enter the initial guess x_0: ');
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% Ali Heydari
+% Math 231, hw3
+% Newton's Method
+
+% a = input('Please enter a value for the lower bound a: ');
+% b = input('Please enter a value for the upper bound (b) : ');
+
+x_k = ones(1,6);
+
+% get initial conditions
+x_k(1) = input('Please enter the initial guess x_0: ');
+delta = input('Please enter the desired tolerance: ');
+f = input('Please enter f(x)?(type @(x) [then the function] ');
+f_prime = input('Please enter d/dx(f(x)) (derivative)?(type @(x) [then the function] ');
+
+xk = x_k(1);
+fx = f(x_k(1));  % evaluate function at x_o: f(x_o)
+
+counter = 1;      % counter
+
+
+% keep finding the root until f(x_k)~~ 0
+while abs(f(x_k(counter))) > 2 * delta
+    
+    % Neton's method formula
+    x_k(counter+1) = x_k(counter) - (f(x_k(counter)) / f_prime(x_k(counter)));
+    
+    % display xk
+    xk = x_k(counter+1);
+    % Evaluating the function at new x_k
+    fx = f(x_k(counter+1));
+    
+    % find the error
+    error = abs(x_k(count+1) - x_k(count));
+    
+    % no real zero, so we keep this as an arbitrary bound
+    if fx <= 1*10^-10
+            
+            root = xk;   
+     end
+    % Update the counter
+    counter = counter + 1;
+end
+
+fprintf('The root of the function is at x = %i \n', root);
+fprintf('Number of iterations: %i \n', counter);
+
+
+
+##### SOURCE END #####
+--></body></html>

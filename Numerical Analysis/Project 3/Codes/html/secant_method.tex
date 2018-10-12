@@ -1,0 +1,136 @@
+
+% This LaTeX was auto-generated from MATLAB code.
+% To make changes, update the MATLAB code and republish this document.
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{color}
+
+\sloppy
+\definecolor{lightgray}{gray}{0.5}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+    
+    
+\subsection*{Contents}
+
+\begin{itemize}
+\setlength{\itemsep}{-1ex}
+   \item Interactive Interface (with user input)
+   \item Non Interactive (without user input)
+   \item Output Formatting
+   \item Outputs
+\end{itemize}
+\begin{verbatim}
+% Ali Heydari
+% Math 231, hw3
+% Secant Method
+
+
+% Problem 3)part a) second root x = 1
+
+x_k = zeros(1,10);
+error = zeros(1,10);
+e_n = zeros(1,10);
+\end{verbatim}
+
+
+\subsection*{Interactive Interface (with user input)}
+
+\begin{verbatim}
+% % get initial conditions
+% x_k(1) = input('Please enter the initial guess x_0: ');
+% x_k(2) = input('Please enter the initial guess x_1: ');
+% delta = input('Please enter the desired tolerance: ');
+% f = input('Please enter f(x)?(type @(x) [then the function] ');
+\end{verbatim}
+
+
+\subsection*{Non Interactive (without user input)}
+
+\begin{verbatim}
+f = @(x) x^3 - 3*x + 2;
+% our two initial guesses
+x_k(1) = 1.2;
+x_k(2) = 0;
+xk = x_k(1);
+fx = f(x_k(1));
+delta = 10^-6 ;
+
+% evaluate function at x_o: f(x_o)
+fx = f(x_k(2));
+
+counter = 2; % counter
+
+% keep finding the root until f(x_k) = 0
+while abs(f(x_k(counter))) > delta
+
+% secant method formula
+x_k(counter+1) = x_k(counter) - (f(x_k(counter))*(x_k(counter) ...
+    - x_k(counter-1)))/( f(x_k(counter)) - f(x_k(counter-1)));
+% %display xk and f(xk)
+ xk = x_k(counter+1);
+ fx = f(x_k(counter+1));
+% find error error:
+
+e_n(counter) = abs(xk - (-2));
+     if fx <= 1 * 10 ^ -6
+
+            root = xk;
+     end
+
+error(counter) = abs(x_k(counter+1) - x_k(counter));
+counter = counter + 1;
+
+end
+\end{verbatim}
+
+
+\subsection*{Output Formatting}
+
+\begin{verbatim}
+disp(" ");
+disp(" ");
+fprintf('The root of the function is at x = %i \n', root);
+fprintf('Number of iterations: %i \n', counter);
+disp(" ");
+disp(" ");
+
+disp("        pn              |p_{n+1} - p_n|       e_n = |pn - p| ")
+for i= 1 : counter - 1
+    % to only output 10 values
+    if i < 11
+        fprintf("%i   %i         %i         %i\n",i ,x_k(i),error(i),e_n(i));
+    end
+end
+\end{verbatim}
+
+
+\subsection*{Outputs}
+(Next Page)
+\newpage
+        \color{lightgray} \begin{verbatim} 
+ 
+The root of the function is at x = 1.000427e+00 
+Number of iterations: 18 
+ 
+ 
+        pn              |p_{n+1} - p_n|       e_n = |pn - p| 
+1   1.200000e+00         0                    0
+2   0                    1.282051e+00         3.282051e+00
+3   1.282051e+00         1.925003e-01         3.474552e+00
+4   1.474552e+00         2.889026e-01         3.185649e+00
+5   1.185649e+00         4.715544e-02         3.138494e+00
+6   1.138494e+00         5.723392e-02         3.081260e+00
+7   1.081260e+00         2.922022e-02         3.052039e+00
+8   1.052039e+00         1.999151e-02         3.032048e+00
+9   1.032048e+00         1.208593e-02         3.019962e+00
+10   1.019962e+00         7.611857e-03         3.012350e+00
+\end{verbatim} \color{black}
+    
+
+
+\end{document}
+    

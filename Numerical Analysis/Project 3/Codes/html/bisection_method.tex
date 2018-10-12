@@ -1,0 +1,182 @@
+
+% This LaTeX was auto-generated from MATLAB code.
+% To make changes, update the MATLAB code and republish this document.
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{color}
+
+\sloppy
+\definecolor{lightgray}{gray}{0.5}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+    
+    
+\subsection*{Contents}
+
+\begin{itemize}
+\setlength{\itemsep}{-1ex}
+   \item Interactive Interface (with user input)
+   \item Non Interactive (without user input)
+   \item Method
+   \item Output Formatting
+   \item Outputs
+\end{itemize}
+\begin{verbatim}
+% Ali Heydari
+% Math 231, hw3
+% Bisection Method
+\end{verbatim}
+
+
+\subsection*{Interactive Interface (with user input)}
+
+\begin{par}
+\% get input a = input('Please enter a value for the lower bound a: '); b = input('Please enter a value for the upper bound (b) : '); delta = input('Please enter the desired tolerance: '); f = input('Please enter f(x)?(type @(x) [then the function] ');
+\end{par} \vspace{1em}
+\begin{verbatim}
+% see if any of the boundaries are a root
+\end{verbatim}
+
+
+\subsection*{Non Interactive (without user input)}
+
+\begin{verbatim}
+f = @(x) x^3 - 3*x + 2;
+
+
+retur = 0;
+counter = 0;
+x_k = ones(1,10);
+error = zeros(1,10);
+e_n = zeros(1,10);
+
+delta = 10^-6
+a = -4;
+b = 0;
+\end{verbatim}
+
+
+\subsection*{Method}
+
+\begin{verbatim}
+fa = f(a);
+
+if fa == 0
+
+    root = a;
+    retur = 1;
+
+end;
+
+fb = f(b);
+
+if fb == 0
+    root = b;
+    retur = 1;
+
+end;
+
+% if the boundaries are not the root then do bisection
+
+if retur ~= 1
+
+    % check if the user hasnt lost their mind
+    if sign(fa) == sign(fb)
+
+        display('Error: f(a) and f(b) have same sign.')
+
+        retur = 1;
+
+    end;
+
+    % if all is gucci
+
+
+           while abs(b-a) > delta && retur ~= 1
+                % As Mayya said in class, keep going until Iterate I <= 2delta
+
+                counter = counter + 1;
+
+                c = (a+b)/2;
+                fc = f(c);
+
+                if fc == 0
+                        root = c;
+                        retur = 1;
+                end;
+
+                % cehk to see which side of the interval we want
+
+                if sign(fc) == sign(fa)
+                        a = c;
+                        fa = fc;
+                else
+                        b = c;
+                        fb = fc;
+                end;
+
+            end;
+
+            % hopefully we got want we need
+            root = (a+b)/2;
+end
+
+fprintf('The found root is: %i \n',root);
+fprintf('Total iterations: %i \n', counter);
+\end{verbatim}
+
+
+\subsection*{Output Formatting}
+
+\begin{verbatim}
+disp(" ");
+disp(" ");
+fprintf('The root of the function is at x = %i \n', root);
+fprintf('Number of iterations: %i \n', counter);
+disp(" ");
+disp(" ");
+
+disp("        pn              |p_{n+1} - p_n|       e_n = |pn - p| ")
+for i= 1 : counter
+
+fprintf("%i   %i         %i         %i\n",i ,x_k(i),error(i),e_n(i));
+
+end
+\end{verbatim}
+
+
+\subsection*{Outputs}
+
+
+        \color{lightgray} \begin{verbatim}
+delta =
+
+   1.0000e-06
+
+The found root is: -2
+Total iterations: 9 
+ 
+ 
+The root of the function is at x = -2 
+Number of iterations: 9 
+ 
+ 
+        pn              |p_{n+1} - p_n|       e_n = |pn - p| 
+       -2.1                 0.15                  0.1
+       -1.95                 0.075                0.05
+       -2.025                0.0375               0.025
+       -1.9875               0.01875              0.0125
+       -2.0063           0.009375         0.0062499
+       -1.9969           0.0046875        0.0031251
+       -2.0016           0.0023438        0.0015624
+       -1.9992           0.0011719        0.00078135
+       -2.0004           0.00058594       0.00039053 
+\end{verbatim} \color{black}
+    
+
+
+\end{document}
+    
