@@ -1,0 +1,197 @@
+
+% This LaTeX was auto-generated from MATLAB code.
+% To make changes, update the MATLAB code and republish this document.
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{color}
+
+\sloppy
+\definecolor{lightgray}{gray}{0.5}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+    
+    
+\subsection*{Contents}
+
+\begin{itemize}
+\setlength{\itemsep}{-1ex}
+   \item Interactive Interface (with user input)
+   \item Non Interactive (without user input)
+   \item Different norms and Tolerances
+   \item Output Formatting
+   \item Output
+   \item Function
+\end{itemize}
+\begin{verbatim}
+% Ali Heydari
+% Math 231 Homework 4
+% Jacobi Method (Q4) N = 50
+\end{verbatim}
+
+
+\subsection*{Interactive Interface (with user input)}
+
+\begin{par}
+get input A = input(?Please enter the matrix A: ?); x\_init = input(' Please enter a vector of initial guesses for x :'); delta = input(?Please enter the desired tolerance: ?);
+\end{par} \vspace{1em}
+
+
+\subsection*{Non Interactive (without user input)}
+
+\begin{par}
+making the tridiagonal matrix
+\end{par} \vspace{1em}
+\begin{verbatim}
+n = 400;
+A=full(gallery('tridiag',n,-1,2,-1));
+
+b = zeros(n,1);
+b(1) = 1;
+
+% arbitrary initial guess
+x_init = zeros(n,1);
+n = size(x_init,1);
+error = 1;
+
+
+
+% different norms
+
+% l2 norm
+L = 2;
+\end{verbatim}
+
+
+\subsection*{Different norms and Tolerances}
+
+\begin{par}
+find the solution based on what norm and what error: delta = 10\^{}-2; [x\_sol\_l2\_1 ,counter\_l2\_1] = gauss\_seidel(A, x\_init, delta, error, n, b, L);
+\end{par} \vspace{1em}
+\begin{verbatim}
+for i = 1 : 5
+delta = 10^-i;
+tic;
+[x_sol_l2_2 ,counter_l2_2] = gauss_seidel(A, x_init, delta, error, n, b, L);
+time = toc;
+
+fprintf("iter: %i    time:%i \n",counter_l2_2,time);
+end
+% l_infty norm (denoted as l8)
+% L = Inf;
+% delta = 10^-2;
+% [x_sol_l8_1 ,counter_l8_1] = gauss_seidel(A, x_init, delta, error, n, b, L);
+%
+% delta = 10^-5;
+% [x_sol_l8_2 ,counter_l8_2] = gauss_seidel(A, x_init, delta, error, n, b, L);
+\end{verbatim}
+
+
+\subsection*{Output Formatting}
+
+\begin{verbatim}
+% fprintf(" APPROXIMATIONS: \n")
+% disp(" ")
+% fprintf(" For l-2 norm and 10^-2   |   For l-2 norm and 10^-5 | \n ");
+% disp("----------------------------------------------------- ")
+% for i = 1 : size(x_sol_l2_2)
+%
+%     fprintf("        %f          |         %f\n", x_sol_l2_2(i),x_sol_l2_2(i));
+%
+% end
+% disp("----------------------------------------------------- ")
+% fprintf(" NUMBER OF ITERATIONS\n ")
+% disp(" ")
+% fprintf("For l-2 norm and 10^-2 | For l-2 norm and 10^-5 |\n");
+% disp("----------------------------------------------------- ")
+%  fprintf("        %f          |         %f\n", counter_l2_1,counter_l2_2);
+% disp(" ")
+% fprintf(" APPROXIMATIONS: \n")
+% fprintf(" For l-Inf norm and 10^-2  |  For l-Inf norm and 10^-5 | \n ");
+% disp("----------------------------------------------------- ")
+% for i = 1 : size(x_sol_l8_1)
+%
+%     fprintf("        %f           |         %f\n", x_sol_l8_1(i),x_sol_l8_2(i));
+%
+% end
+%
+% disp("----------------------------------------------------- ")
+% disp(" ")
+% fprintf(" NUMBER OF ITERATIONS\n ")
+% fprintf("For l-Inf norm and 10^-2 | For l-Inf norm and 10^-5 |\n");
+% disp("----------------------------------------------------- ")
+%  fprintf("        %f          |         %f\n", counter_l8_1,counter_l8_2);
+\end{verbatim}
+
+
+\subsection*{Output}
+
+
+
+\subsection*{Function}
+
+\begin{verbatim}
+function[x_sol,counter,time] = gauss_seidel(A, x_init, delta, error, n, b, L)
+tic;
+counter = 0;
+
+% the algorithm
+while error > delta
+
+    x_old = x_init;
+
+    for i = 1:n
+
+        % this is essentially a place holder for the sum part
+        AX = 0;
+
+        % since i not= j, we do two for loops
+        for j=1:n
+
+            if j~=i
+                AX = AX + A(i,j) * x_init(j);
+            end
+
+        end
+
+        % now get the value of each
+        x_init(i) = (1 / A(i,i)) * (b(i) - AX);
+
+    end
+
+    % update error and counter
+
+    if L == Inf
+
+        error = norm((x_old - x_init),Inf);
+
+    end
+
+    if L == 2
+
+            error = norm((x_old - x_init));
+    end
+
+    counter = counter + 1;
+end
+
+% storing our answers
+counter = counter - 1;
+x_sol = x_init;
+time = toc;
+end
+\end{verbatim}
+
+        \color{lightgray} \begin{verbatim}iter: 4    time:2.156054e-02 
+iter: 95    time:8.994348e-02 
+iter: 2127    time:1.502804e+00 
+iter: 27775    time:1.867436e+01 
+iter: 65287    time:4.705305e+01 
+\end{verbatim} \color{black}
+    
+
+
+\end{document}
+    
