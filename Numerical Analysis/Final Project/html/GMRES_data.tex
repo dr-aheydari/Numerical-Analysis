@@ -1,0 +1,767 @@
+
+% This LaTeX was auto-generated from MATLAB code.
+% To make changes, update the MATLAB code and republish this document.
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{color}
+
+\sloppy
+\definecolor{lightgray}{gray}{0.5}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+    
+    \begin{verbatim}
+% Ali Heydari
+% Iterative methods
+% GMRES Method
+
+
+% opening the matrices
+
+N = mmread("nos3.mtx");
+W = mmread("west0479.mtx");
+
+cond_N = cond(N);
+cond_W = cond(W);
+
+tfN = issymmetric(N);
+tfW = issymmetric(W);
+
+bN = ones(length(N),1);
+bW = ones(length(W),1);
+
+n = length(N);
+% we will iterate up to this
+m = n;
+% arbitrary initial guess
+x_0 = zeros(n,1);
+% n = size(x_0,1);
+
+% for i = 1:5
+
+     tol = 10^ -8;
+[XN,KN,HN,r_newN,timeN,counterN] = GMRES_1(x_0,N,bN,m,tol);
+%
+%
+%
+ XN_act = inv(N) * bN;
+%
+% [solN flag,relres,iterN] = gmres(N,bN);
+%
+
+ maxit = length(N);
+
+
+ tol = 10^ - 8;
+
+tic;
+[x,flN,rrN,itN,rvN] = gmres(N,bN,[],tol,maxit);
+
+
+eN = toc;
+
+x = gmres(N,bN,[],tol,maxit);
+%
+errorN = norm(XN - XN_act);
+
+true_errorN = norm(x - XN_act);
+
+fprintf("MATLAB GMRES WEST for tol = %i\n", tol);
+
+
+fprintf("ITERATIONS: %i \n", itN);
+fprintf("Residual: %i \n", rrN);
+fprintf("ERROR: %i \n", true_errorN);
+fprintf("CPU TIME: %i \n", eN);
+
+disp(" ");
+
+fprintf("Homemade GMRES for WEST for tol = %i \n", tol);
+fprintf("ITERATIONS: %i \n", counterN);
+fprintf("Residual: %i \n", r_newN);
+fprintf("ERROR: %i \n", errorN);
+fprintf("CPU TIME: %i \n", timeN);
+
+% fprintf("iter: %i    time:%i",counter,time);
+% end
+
+
+n = length(W);
+% we will iterate up to this
+m = n;
+% arbitrary initial guess
+x_0 = zeros(n,1);
+% n = size(x_0,1);
+
+
+ tol = 10^-16;
+ [XW,KW,HW,r_newW,timeW,counterW] = GMRES_1(x_0,W,bW,m,tol);
+%
+   XW_act = inv(W) * bW;
+%
+   errorW = norm(XW - XW_act);
+%
+%  solW = gmres(W,bW,m,tol,m);
+%
+
+
+tol = 10 ^ -8;
+maxit = length(W);
+tic;
+[x,flW,rrW,itW,rvW] = gmres(W,bW,[],tol,maxit);
+
+e = toc;
+
+% true_errorW = norm(x - XW_act);
+
+
+x = gmres(W,bW,[],tol,maxit);
+
+errorW = norm(XW - XW_act);
+
+true_errorW = norm(x - XW_act);
+
+
+fprintf("MATLAB GMRES WEST for tol = %i\n", tol);
+
+fprintf("ITERATIONS: %i \n", itW);
+fprintf("Residual: %i \n", rrW);
+fprintf("ERROR: %i \n", true_errorW);
+fprintf("CPU TIME: %i \n", e);
+
+disp(" ")
+
+fprintf("Homemade GMRES for WEST for tol = %i \n", tol);
+fprintf("ITERATIONS: %i \n", counterW);
+fprintf("Residual: %i \n", r_newW);
+fprintf("ERROR: %i \n", errorW);
+fprintf("CPU TIME: %i \n", timeW);
+
+function [X,K,H,res_new,time,counter] = GMRES_1(x_0,A,b,m,tol)
+% to get CPU runtime (in miliseconds)
+tic;
+% initialize
+res = b - A * x_0;
+beta = norm(res);
+H = zeros(m - 1, m);
+vec = res/beta;
+n = length(A);
+% call arnoldi orth function
+[K,H,counter] = Arnoldi(vec,A,m,n,tol);
+
+Y = (A * K(:,1:counter)) \ b;
+% here are the solutions
+X = x_0 + K(:,1:counter) * Y;
+res_new = norm( A * X - b );
+time = toc;
+end
+
+
+function [K,H,counter] = Arnoldi(vec,A,m,n,tol)
+
+tol = 10 ^ -8;
+% Initialize vectors K,H,W
+K = zeros(n,m);
+%  H = zeros(m - 1,n);
+counter = 0;
+% Normalize the first
+K(:,1) = vec / norm(vec);
+
+
+for j = 1:m
+
+    w = A * K(:,j);
+
+    for i = 1 : j
+
+        % the Hess1enberg matrix
+        H(i,j) = K(:,i)' * w;
+        w = w - H(i,j) * K(:,i);
+
+    end
+
+
+
+    % just to initialize the error
+    if j < 2
+
+        res = norm(w);
+
+    end
+
+
+    % here is if we get a lucky break
+
+    if norm(w) == 0
+
+        disp("Lucky break");
+        return;
+    end
+
+    if res > tol
+
+        H(j+1,j) = norm(w);
+
+
+        y_m = inv(H'* H)* H';
+        res = norm(w) * abs(y_m(j));
+
+        K(:,j+1) = w / H(j+1,j);
+
+    else
+
+        return;
+
+    end
+
+
+
+    [counter  bounter] = size(H);
+
+    counter = counter - 1;
+
+    %         disp(bounter);
+
+end
+end
+
+
+
+
+
+% got this function from Matrix Market
+function  [A,rows,cols,entries,rep,field,symm] = mmread(filename)
+%
+% function  [A] = mmread(filename)
+%
+% function  [A,rows,cols,entries,rep,field,symm] = mmread(filename)
+%
+%      Reads the contents of the Matrix Market file 'filename'
+%      into the matrix 'A'.  'A' will be either sparse or full,
+%      depending on the Matrix Market format indicated by
+%      'coordinate' (coordinate sparse storage), or
+%      'array' (dense array storage).  The data will be duplicated
+%      as appropriate if symmetry is indicated in the header.
+%
+%      Optionally, size information about the matrix can be
+%      obtained by using the return values rows, cols, and
+%      entries, where entries is the number of nonzero entries
+%      in the final matrix. Type information can also be retrieved
+%      using the optional return values rep (representation), field,
+%      and symm (symmetry).
+%
+
+mmfile = fopen(filename,'r');
+if ( mmfile == -1 )
+    disp(filename);
+    error('File not found');
+end;
+
+header = fgets(mmfile);
+if (header == -1 )
+    error('Empty file.')
+end
+
+% NOTE: If using a version of Matlab for which strtok is not
+%       defined, substitute 'gettok' for 'strtok' in the
+%       following lines, and download gettok.m from the
+%       Matrix Market site.
+[head0,header]   = strtok(header);  % see note above
+[head1,header]   = strtok(header);
+[rep,header]     = strtok(header);
+[field,header]   = strtok(header);
+[symm,header]    = strtok(header);
+head1 = lower(head1);
+rep   = lower(rep);
+field = lower(field);
+symm  = lower(symm);
+if ( length(symm) == 0 )
+    disp(['Not enough words in header line of file ',filename])
+    disp('Recognized format: ')
+    disp('%%MatrixMarket matrix representation field symmetry')
+    error('Check header line.')
+end
+if ( ~ strcmp(head0,'%%MatrixMarket') )
+    error('Not a valid MatrixMarket header.')
+end
+if (  ~ strcmp(head1,'matrix') )
+    disp(['This seems to be a MatrixMarket ',head1,' file.']);
+    disp('This function only knows how to read MatrixMarket matrix files.');
+    disp('  ');
+    error('  ');
+end
+
+% Read through comments, ignoring them
+
+commentline = fgets(mmfile);
+while length(commentline) > 0 & commentline(1) == '%',
+    commentline = fgets(mmfile);
+end
+
+% Read size information, then branch according to
+% sparse or dense format
+
+if ( strcmp(rep,'coordinate')) %  read matrix given in sparse
+    %  coordinate matrix format
+
+    [sizeinfo,count] = sscanf(commentline,'%d%d%d');
+    while ( count == 0 )
+        commentline =  fgets(mmfile);
+        if (commentline == -1 )
+            error('End-of-file reached before size information was found.')
+        end
+        [sizeinfo,count] = sscanf(commentline,'%d%d%d');
+        if ( count > 0 & count ~= 3 )
+            error('Invalid size specification line.')
+        end
+    end
+    rows = sizeinfo(1);
+    cols = sizeinfo(2);
+    entries = sizeinfo(3);
+
+    if  ( strcmp(field,'real') )               % real valued entries:
+
+        [T,count] = fscanf(mmfile,'%f',3);
+        T = [T; fscanf(mmfile,'%f')];
+        if ( size(T) ~= 3*entries )
+            message = ...
+                str2mat('Data file does not contain expected amount of data.',...
+                'Check that number of data lines matches nonzero count.');
+            disp(message);
+            error('Invalid data.');
+        end
+        T = reshape(T,3,entries)';
+        A = sparse(T(:,1), T(:,2), T(:,3), rows , cols);
+
+    elseif   ( strcmp(field,'complex'))            % complex valued entries:
+
+        T = fscanf(mmfile,'%f',4);
+        T = [T; fscanf(mmfile,'%f')];
+        if ( size(T) ~= 4*entries )
+            message = ...
+                str2mat('Data file does not contain expected amount of data.',...
+                'Check that number of data lines matches nonzero count.');
+            disp(message);
+            error('Invalid data.');
+        end
+        T = reshape(T,4,entries)';
+        A = sparse(T(:,1), T(:,2), T(:,3) + T(:,4)*sqrt(-1), rows , cols);
+
+    elseif  ( strcmp(field,'pattern'))    % pattern matrix (no values given):
+
+        T = fscanf(mmfile,'%f',2);
+        T = [T; fscanf(mmfile,'%f')];
+        if ( size(T) ~= 2*entries )
+            message = ...
+                str2mat('Data file does not contain expected amount of data.',...
+                'Check that number of data lines matches nonzero count.');
+            disp(message);
+            error('Invalid data.');
+        end
+        T = reshape(T,2,entries)';
+        A = sparse(T(:,1), T(:,2), ones(entries,1) , rows , cols);
+
+    end
+
+elseif ( strcmp(rep,'array') ) %  read matrix given in dense
+    %  array (column major) format
+
+    [sizeinfo,count] = sscanf(commentline,'%d%d');
+    while ( count == 0 )
+        commentline =  fgets(mmfile);
+        if (commentline == -1 )
+            error('End-of-file reached before size information was found.')
+        end
+        [sizeinfo,count] = sscanf(commentline,'%d%d');
+        if ( count > 0 & count ~= 2 )
+            error('Invalid size specification line.')
+        end
+    end
+    rows = sizeinfo(1);
+    cols = sizeinfo(2);
+    entries = rows*cols;
+    if  ( strcmp(field,'real') )               % real valued entries:
+        A = fscanf(mmfile,'%f',1);
+        A = [A; fscanf(mmfile,'%f')];
+        if ( strcmp(symm,'symmetric') | strcmp(symm,'hermitian') | strcmp(symm,'skew-symmetric') )
+            for j=1:cols-1,
+                currenti = j*rows;
+                A = [A(1:currenti); zeros(j,1);A(currenti+1:length(A))];
+            end
+        elseif ( ~ strcmp(symm,'general') )
+            disp('Unrecognized symmetry')
+            disp(symm)
+            disp('Recognized choices:')
+            disp('   symmetric')
+            disp('   hermitian')
+            disp('   skew-symmetric')
+            disp('   general')
+            error('Check symmetry specification in header.');
+        end
+        A = reshape(A,rows,cols);
+    elseif  ( strcmp(field,'complex'))         % complx valued entries:
+        tmpr = fscanf(mmfile,'%f',1);
+        tmpi = fscanf(mmfile,'%f',1);
+        A  = tmpr+tmpi*i;
+        for j=1:entries-1
+            tmpr = fscanf(mmfile,'%f',1);
+            tmpi = fscanf(mmfile,'%f',1);
+            A  = [A; tmpr + tmpi*i];
+        end
+        if ( strcmp(symm,'symmetric') | strcmp(symm,'hermitian') | strcmp(symm,'skew-symmetric') )
+            for j=1:cols-1,
+                currenti = j*rows;
+                A = [A(1:currenti); zeros(j,1);A(currenti+1:length(A))];
+            end
+        elseif ( ~ strcmp(symm,'general') )
+            disp('Unrecognized symmetry')
+            disp(symm)
+            disp('Recognized choices:')
+            disp('   symmetric')
+            disp('   hermitian')
+            disp('   skew-symmetric')
+            disp('   general')
+            error('Check symmetry specification in header.');
+        end
+        A = reshape(A,rows,cols);
+    elseif  ( strcmp(field,'pattern'))    % pattern (makes no sense for dense)
+        disp('Matrix type:',field)
+        error('Pattern matrix type invalid for array storage format.');
+    else                                 % Unknown matrix type
+        disp('Matrix type:',field)
+        error('Invalid matrix type specification. Check header against MM documentation.');
+    end
+end
+
+%
+% If symmetric, skew-symmetric or Hermitian, duplicate lower
+% triangular part and modify entries as appropriate:
+%
+
+if ( strcmp(symm,'symmetric') )
+    A = A + A.' - diag(diag(A));
+    entries = nnz(A);
+elseif ( strcmp(symm,'hermitian') )
+    A = A + A' - diag(diag(A));
+    entries = nnz(A);
+elseif ( strcmp(symm,'skew-symmetric') )
+    A = A - A';
+    entries = nnz(A);
+end
+
+fclose(mmfile);
+% Done.
+end
+\end{verbatim}
+
+        \color{lightgray} \begin{verbatim}Warning: Using CONDEST instead of COND for sparse matrix. 
+Warning: Using CONDEST instead of COND for sparse matrix. 
+gmres converged at iteration 245 to a solution with relative residual 9.3e-09.
+MATLAB GMRES WEST for tol = 1.000000e-08
+ITERATIONS: 1 
+ITERATIONS: 245 
+Residual: 9.326648e-09 
+ERROR: 3.271000e-08 
+CPU TIME: 1.010742e-01 
+ 
+Homemade GMRES for WEST for tol = 1.000000e-08 
+ITERATIONS: 243 
+Residual: 4.405596e-07 
+ERROR: 5.620626e-08 
+CPU TIME: 3.808004e-01 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.184465e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.180110e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.176385e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.102052e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.087931e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.086860e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.805115e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.788111e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.735066e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.731514e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.695189e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.679809e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.510505e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.487859e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.309648e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.264993e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.221699e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.128237e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.118581e-16. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.990053e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.975611e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.574998e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.432257e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.216640e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.146499e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.055039e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.900587e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.821109e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.727218e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.002176e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  7.057688e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  7.381056e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  7.379039e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.691957e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.060435e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.064408e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.060754e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.543810e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.925053e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.912916e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.737512e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.580696e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.565600e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.665802e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.622471e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.567991e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.435946e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.367038e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.340197e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  4.073446e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  4.055886e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  4.019759e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.891133e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.883022e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.624246e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.544711e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.343415e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.322280e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.304026e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.201112e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.023357e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.085999e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.075817e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.045417e-17. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.689292e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.603307e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.596312e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.293007e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.666363e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.634857e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.236050e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  7.854592e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  7.862806e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  7.850900e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  7.064660e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.931660e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.423530e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.400823e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.386237e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.301349e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  6.112005e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.770028e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.674478e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.687912e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.598786e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.914022e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  4.896448e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  4.346511e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  4.343634e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  4.237545e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.777574e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.711033e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.620883e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.785220e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.739798e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.788459e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.800524e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.769053e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.617629e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.038247e-18. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.633638e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.766655e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.218131e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.902971e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.412169e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.807916e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.623487e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.317613e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.164636e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.298231e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.449306e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.004055e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  7.575924e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  4.873248e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  4.596786e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.106024e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.023754e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.231558e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.632071e-19. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.975666e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.230013e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.217720e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.248737e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  8.236211e-21. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.617987e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.255575e-21. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  9.255046e-22. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  5.163057e-21. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  2.272752e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.800214e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.816879e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  3.942325e-21. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.567228e-20. 
+Warning: Matrix is close to singular or badly scaled. Results may be inaccurate.
+RCOND =  1.010448e-20. 
+Warning: Input tol may not be achievable by GMRES.
+ Try to use a bigger tolerance. 
+Warning: Input tol may not be achievable by GMRES.
+ Try to use a bigger tolerance. 
+gmres stopped at iteration 479 without converging to the desired tolerance 1e-08
+because the method stagnated.
+The iterate returned (number 479) has relative residual 4.3e-07.
+MATLAB GMRES WEST for tol = 1.000000e-08
+ITERATIONS: 1 
+ITERATIONS: 479 
+Residual: 4.329272e-07 
+ERROR: 1.769049e-02 
+CPU TIME: 1.906841e-01 
+ 
+Homemade GMRES for WEST for tol = 1.000000e-08 
+ITERATIONS: 479 
+Residual: 6.984163e-06 
+ERROR: 8.068984e-03 
+CPU TIME: 2.684938e+00 
+\end{verbatim} \color{black}
+    
+
+
+\end{document}
+    
