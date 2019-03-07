@@ -141,6 +141,3 @@ t_end = time.clock()
 print ("SOR with Omega = {0} <----> CPU time = \t{1:0.2f} \t <----> iterations = {2}"\
        .format(omega,t_end - t_start,counter))
 
-
-order = np.log(err / 1.271595525892124e-05)/ np.log(h / 0.1);
-print("order of convergence is : {}".format(order));

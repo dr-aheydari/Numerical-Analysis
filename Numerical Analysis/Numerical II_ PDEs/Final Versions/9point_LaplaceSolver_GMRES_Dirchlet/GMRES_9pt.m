@@ -1,104 +1,97 @@
 % Ali Heydari
 % Iterative methods
-% GMRES Method
+% GMRES Method for 9 point Laplacian w/ Dirchlet BC
 
 f = inline('-5 * cos(x + 2 * y)','x','y');
 g = inline('cos(x + 2*y)','x','y');
 
-%  Set up grid.
 
-h = 0.025;
+h = 0.1;
 n = 1/h;
 N = (n-1)^2;
 m = n;
 x_0 = zeros(N,1);
 
-%  Initialize block tridiagonal finite difference matrix A and
-%  right-hand side vector b.
+% initializing
 
-%A = sparse(zeros(N,N));  % This stores A as a sparse matrix.  Only the
-A = zeros(N,N);                         % nonzero entries are stored.
+
+A = zeros(N,N);
 b = zeros(N,1);
 
-%  Loop over grid points in y direction.
 
-
-x = 0 : h : 1;
-y = 0 : h : 1;
-
-n = 1/h;
 
 [XM,YM] = meshgrid(x,y);
 G = [];
 
 for i = 1 : n
-    
-    for j = 1 : n
-        G(i,j) = g(XM(i,j),YM(i,j));
-    
-    end
-    
+
+for j = 1 : n
+G(i,j) = g(XM(i,j),YM(i,j));
+
+end
+
 end
 
 Q = [];
 
 for i = 1 : n
-    
-    for j = 1 : n
-        Q(i,j) = f(XM(i,j),YM(i,j));
-    
-    end
-    
+
+for j = 1 : n
+Q(i,j) = f(XM(i,j),YM(i,j));
+
+end
+
 end
 
 
-for j=2:n-1
-  
-  yj = j*h;
-  
-%    Loop over grid points in x direction.
 
-  for i=2:n-1
-    xi = i*h;
-     
-    k = i + (j-1)*(n-1);     % k is the index of the equation corresponding
+for j=1:n-1
 
-    A(k,k) = -4;
-    if i > 1
-        A(k,k-1) = 1;        % Coupling to point on left.
-    end       
-    if i < n-1
-        A(k,k+1) = 1 ;        % Coupling to point on right.
-    end    
-    if j > 1
-        A(k,k-(n-1)) = 1;    % Coupling to point below.
-    end
-    
-    if j < n-1
-        A(k,k+(n-1)) = 1; % Coupling to point above.
-    end 
-    
-   
-%     ?h**2/2 * (f[i+1,j] + f[i-1,j] + f[i,j+1] +\
-%                f[i,j-1] + 8*f[i,j]);
-%     
-    
+yj = j*h;
+
+%    make matrix A for the exact solution later on
+
+    for i=1:n-1
+        xi = i*h;
+
+        k = i + (j-1)*(n-1);
+
+        A(k,k) = -4;
+            if i > 1
+                A(k,k-1) = 1;
+            end
+            if i < n-1
+                A(k,k+1) = 1 ;
+            end
+            if j > 1
+                A(k,k-(n-1)) = 1;
+            end
+
+            if j < n-1
+                A(k,k+(n-1)) = 1;
+            end
+
+
     
     b(k) = h^2 * ( Q(i+1,j) + Q(i-1,j) + Q(i,j+1) + ...
                 Q(i,j-1) + 8 * Q(i,j));
  
-    if i==1
-        b(k) = h^2 * b(k) - g(0,yj); 
-    end   % Bndy point on left.
-    if i==n-1
-        b(k) = h^2 * b(k) - g(1,yj); 
-    end % Bndy point on right.
-    if j==1
-        b(k) = h^2 * b(k) - g(xi,0);
-    end   % Bndy point below.
-    if j==n-1
-        b(k) = h^2 * b(k) - g(xi,1); 
-    end % Bndy point above.
+        % on the left
+        if i==1
+            b(k) = h^2 * b(k) - g(0,yj);
+        end
+        % on the right
+        if i==n-1
+            b(k) = h^2 * b(k) - g(1,yj);
+        end
+        % on the top
+        if j==n-1
+            b(k) = h^2 * b(k) - g(xi,1);
+        end
+        % on the bottom
+        if j==1
+            b(k) = h^2 * b(k) - g(xi,0);
+        end
   
   end
   
@@ -155,7 +148,7 @@ ugrid = G ;%reshape(u,n-1,n-1);  % This makes the Nx1 vector u into an n-1 x n-1
 
 % mesh(XM(1:40,1:40),YM(1:40,1:40),G)
 % 
-% surf([h:h:1-h]',[h:h:1-h]',ugrid)  %This plots u(x,y) as a function of x and y.
+% surf([h:h:1-h]',[h:h:1-h]',ugrid)
 % title('Exact solution')
 
 

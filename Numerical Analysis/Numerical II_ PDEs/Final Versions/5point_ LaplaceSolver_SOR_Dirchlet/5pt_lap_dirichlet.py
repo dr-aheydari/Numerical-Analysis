@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Feb 20 19:25:06 2019
+Created on Wed Feb 15 19:25:06 2019
 
 @author: aliheydari
 """
@@ -160,12 +160,6 @@ print(err)
 
 print ("SOR with Omega = {0} <----> CPU time = \t{1:0.2f} \t <----> iterations = {2}"\
        .format(omega,t_end - t_start,counter))
-
-
-# error from the h = 0.1 is 0.00026760649441859297
-
-order = np.log(err/6.869008943721777e-05)/ np.log(h / 0.05);
-print("order of convergence is : {}".format(order));
 
 
 

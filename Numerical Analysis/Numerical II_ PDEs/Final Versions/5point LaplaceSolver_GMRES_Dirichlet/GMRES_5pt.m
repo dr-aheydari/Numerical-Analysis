@@ -1,11 +1,10 @@
 % Ali Heydari
 % Iterative methods
-% GMRES Method
+% GMRES Method for 5 point Laplacian w/ Dirichlet BC
 
 f = inline('-5 * cos(x + 2 * y)','x','y');
 g = inline('cos(x + 2*y)','x','y');
 
-%  Set up grid.
 
 h = 0.1;
 n = 1/h;
@@ -13,59 +12,60 @@ N = (n-1)^2;
 m = n;
 x_0 = zeros(N,1);
 
-%  Initialize block tridiagonal finite difference matrix A and
-%  right-hand side vector b.
+% initializing
 
-%A = sparse(zeros(N,N));  % This stores A as a sparse matrix.  Only the
-A = zeros(N,N);                         % nonzero entries are stored.
+
+A = zeros(N,N);
 b = zeros(N,1);
 
-%  Loop over grid points in y direction.
 
 for j=1:n-1
   
   yj = j*h;
   
-%    Loop over grid points in x direction.
+%    make matrix A for the exact solution later on
 
   for i=1:n-1
     xi = i*h;
      
-    k = i + (j-1)*(n-1);     % k is the index of the equation corresponding
+    k = i + (j-1)*(n-1);
 
     A(k,k) = -4;
     if i > 1
-        A(k,k-1) = 1;        % Coupling to point on left.
-    end       
+        A(k,k-1) = 1;
     if i < n-1
-        A(k,k+1) = 1 ;        % Coupling to point on right.
-    end    
+        A(k,k+1) = 1 ;
     if j > 1
-        A(k,k-(n-1)) = 1;    % Coupling to point below.
-    end
+        A(k,k-(n-1)) = 1;
     
     if j < n-1
-        A(k,k+(n-1)) = 1; % Coupling to point above.
+        A(k,k+(n-1)) = 1;
     end 
 
 
 
 
     % compute the b vector (RHS)
-
+     % the whole shabang
     b(k) = f(xi,yj);
+
+    % on the left
     if i==1
         b(k) = h^2 * b(k) - g(0,yj); 
-    end   % Bndy point on left.
+    end
+    % on the right
     if i==n-1
         b(k) = h^2 * b(k) - g(1,yj); 
-    end % Bndy point on right.
+    end
+    % on the top
+    if j==n-1
+    b(k) = h^2 * b(k) - g(xi,1);
+    end
+    % on the bottom
     if j==1
         b(k) = h^2 * b(k) - g(xi,0);
-    end   % Bndy point below.
-    if j==n-1
-        b(k) = h^2 * b(k) - g(xi,1); 
-    end % Bndy point above.
+    end
+
   
   end
   
@@ -88,8 +88,9 @@ u = X;
 %  Plot results.
 figure(1);
 ugrid = reshape(u,n-1,n-1);  % This makes the Nx1 vector u into an n-1 x n-1
-                             % array.
-surf([h:h:1-h]',[h:h:1-h]',ugrid)  %This plots u(x,y) as a function of x and y.
+
+surf([h:h:1-h]',[h:h:1-h]',ugrid)
+
 title('Approximate solution')
 
 x = gmres(A,b,100,10^-7);

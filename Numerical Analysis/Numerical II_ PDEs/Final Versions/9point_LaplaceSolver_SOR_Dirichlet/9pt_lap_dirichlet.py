@@ -62,15 +62,10 @@ real_sol[-1,:] = np.cos(X[-1,:] + 2 * Y[-1,:])
 # Bottom 
 real_sol[0,:] = np.cos(X[0,:] + 2 * Y[0,:])
 
-
-R = np.zeros(((inter_x ) * (inter_x),1),dtype = float)
-
-
-
-for i in range(0,inter_x + 2):
-    for j in range(0,inter_y + 2):
+for i in range(1,inter_x):
+    for j in range(1,inter_y):
         f[i,j] = -5 * np.cos(X[i,j] + 2 * Y[i,j]);
-        real_sol[i,j] = np.cos(X[i,j] + 2 * Y[i,j])  
+        
 
 # given tolerance
 tol=1.0e-7
@@ -78,65 +73,49 @@ tol=1.0e-7
 
 # here we we vary values of omega to find the optimal value
 
-
-omega = 1.0 
+#for q in range(0,5):
+#    # to increment by 0.1
+omega = 1.0 #+ q/10;
 counter = 0
 stop_res = 1.0
 
-# here is the SOR method:
-
+# to get the time elapsed
 t_start = time.clock()
+
+# here is the SOR method:
 
 while (stop_res > tol):
     dVmax = 0.0
-    bounter = 0;
     
-    for i in range(1,inter_y + 1):
+    for i in range(1,inter_x - 5):
         
-        for j in range(1, inter_x + 1):
+        for j in range(1,inter_x - 5):
             # real solution at each point
-            real_sol[i,j] = np.cos(X[i,j] + 2 * Y[i,j]) 
-                
-            R[bounter] = h**2/2 * (f[i+1,j] + f[i-1,j] + f[i,j+1] +\
-               f[i,j-1] + 8*f[i,j]);
-
+            real_sol[i,j] = np.cos(X[i,j] + 2 * Y[i,j])  
             # the RHS
             f[i,j] = -5 * np.cos(X[i,j] + 2 * Y[i,j]);
             # residual 
+#            resid = 1
             resid = 1/6 * (V[i+1,j+1] + V[i+1,j-1] + V[i-1,j+1] + V[i-1,j-1]) + \
-            2/3 * (V[i+1,j] + V[i-1,j] + V[i,j+1] + V[i,j-1]) - 10/3 * V[i,j] - \
-            ((h**2)/12) *(f[i+1,j] + f[i-1,j] + f[i,j+1] + f[i,j-1] +  8*f[i,j]);
+            3/2 * (V[i+1,j] + V[i-1,j] + V[i,j+1] + V[i,j-1]) - 10/3 * V[i,j] - \
+            (h**4)/12 *(f[i+1,j] + f[i-1,j] + f[i,j-1] + f[i,j+1] +  8*f[i,j]);
+#           
+            
+             # or as written in the book 
+#            resid = 4 * V[i-1,j] + 4 * V[i+1,j] + 4 * V[i,j-1] + 4 * V[i,j+1] + \
+#            V[i-1,j-1] + V[i-1,j+1] + V[i+1,j-1] + V[i+1,j+1] - 20 * V[i,j] - \
+#            (h**4)/12 *(f[i+1,j] + f[i-1,j] + f[i,j-1] + f[i,j+1] +  8*f[i,j]);
+            
+            
+            
             dV = 3/10 * omega * resid
-            
+            print(dV)
             V[i,j]+= dV
-            print(V)
             dVmax = np.max([np.abs(dV),dVmax])
-#            print(bounter)
-            bounter += 1;
-            
     # calculating the total residual    
     stop_res = dVmax/np.max(np.abs(V))
     counter += 1
 
-
-x_approx = np.reshape(V,(x_Mgrid + 1) **2);
-x_true = np.reshape(real_sol,(x_Mgrid + 1) **2);
-
-
-err = LA.norm(x_approx - x_true,np.inf);
-print(err)
-
-
+    
 t_end = time.clock()
-
-
-
-print ("SOR with Omega = {0} <----> CPU time = \t{1:0.2f} \t <----> iterations = {2}"\
-       .format(omega,t_end - t_start,counter))
-
-
-#order = np.log( 4.298786257711518e-08 / 9.633311584544835e-07)/ np.log(h / 0.05);
-#print("order of convergence is : {}".format(order));
-
-
-
+print ("SOR with Omega = {0} <----> CPU time = \t{1:0.2f} \t <----> iterations = {2}".format(omega,t_end - t_start,counter))
